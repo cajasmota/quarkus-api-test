@@ -1,0 +1,98 @@
+#!/usr/bin/env sh
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+########################################################################################################################
+# PRINT FUNCTIONS                                                                                                      #
+########################################################################################################################
+
+warning () {
+ORANGE='\033[0;33m'
+NC='\033[0m' # No Color
+printf "${ORANGE}$1${NC}\n"
+}
+
+error () {
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+printf "${RED}$1${NC}\n"
+}
+
+information () {
+NC='\033[0m' # No Color
+printf "${NC}$1${NC}\n"
+}
+
+success () {
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+printf "${GREEN}$1${NC}\n"
+}
+
+########################################################################################################################
+# CHECK BRANCH NAME RULES                                                                                              #
+########################################################################################################################
+success "┌--------------------------------------------------------------------------------------------------┐"
+success "│ PRE-COMMIT HOOK                                                                                  │"
+success "└--------------------------------------------------------------------------------------------------┘"
+
+
+information "Running for branch $branch"
+information "[1/4] Checking Branch name"
+
+valid_branch_regex='^((feature|hotfix)\/[a-zA-Z0-9\-]+)$'
+message="      Your branch does not follow the valid branch names ( feature/<name> | hotfix/<name>), rename your branch and try again."
+
+if [[ ! $branch =~ $valid_branch_regex ]]; then
+    error "$message"
+    information "----------------------------------------------------------------------------------------------------\n\n"
+    #exit 1
+fi
+
+success "      Branch name is OK"
+
+########################################################################################################################
+# CHECK IF ALLOWED BRANCH TO COMMIT                                                                                    #
+########################################################################################################################
+information "[2/4] Checking if branch can be committed"
+
+main_branch_regex='^(main|development|release)$'
+if [[  $branch =~ $main_branch_regex ]]; then
+  error "      You can't commit directly to $branch branch, create a branch from development and follow git-flow protocol"
+  information "----------------------------------------------------------------------------------------------------\n\n"
+  exit 1
+fi
+
+success "      Branch can be committed"
+
+
+########################################################################################################################
+# RUN UNIT TESTS                                                                                                       #
+########################################################################################################################
+information "[3/4] Running tests before commit, please wait"
+
+mvn clean verify 1>/dev/null 2>&1 & pid=$! # Process Id of the previous running command
+
+spin='-\|/'
+
+i=0
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  printf "\r      ${spin:$i:1}"
+  sleep .1
+done
+wait "$pid"; exitCode=$?
+
+if [[ "$exitCode" -ne 0 ]] ; then
+  error '\r      Test failed, run ./mvnw clean verify to see details'
+  information "----------------------------------------------------------------------------------------------------\n\n"
+  exit 1
+fi
+success "\r      Tests completed successfully"
+
+
+information "[4/4] Performing commit"
+success "      Pre-Commit hook finished successfully"
+success "----------------------------------------------------------------------------------------------------\n"
+
+exit 0
