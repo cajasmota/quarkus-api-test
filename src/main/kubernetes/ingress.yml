@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: players-api
+  namespace: wc2026
+spec:
+  rules:
+    - host: api.wc2026.motojoapps.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: players-api
+                port:
+                  name: http
+            path: /players
+            pathType: Prefix
+  ingressClassName: nginx
