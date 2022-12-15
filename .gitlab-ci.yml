@@ -121,7 +121,7 @@ kubernetes-deploy:
   needs: ['docker-build']
   script:
     - 'kubectl config get-contexts'
-    - 'kubectl config use-context ayd2-dic2022/auth-api:gke-agent'
+    - 'kubectl config use-context ayd2-dic2022/kubernetes-config:gke'
     - 'kubectl apply -f target/kubernetes/kubernetes.yml'
   only:
     - main
