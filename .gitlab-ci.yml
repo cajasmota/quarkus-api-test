@@ -41,6 +41,17 @@ mvn-test:
   stage: test
   needs: ["mvn-compile"]
   image: maven:3.8.5-openjdk-17
+  services:
+    - name: docker:dind
+      # explicitly disable tls to avoid docker startup interruption
+      command: [ "--tls=false" ]
+  variables:
+    # Instruct Testcontainers to use the daemon of DinD, use port 2735 for non-tls connections.
+    DOCKER_HOST: "tcp://docker:2375"
+    # Instruct Docker not to start over TLS.
+    DOCKER_TLS_CERTDIR: ""
+    # Improve performance with overlayfs.
+    DOCKER_DRIVER: overlay2
   script:
     - 'mvn $MAVEN_CLI_OPTS test'
   artifacts:
@@ -94,7 +105,7 @@ docker-build:
   script:
     - 'version=`cat target/version`'
     - 'echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin'
-    - 'docker build -f src/main/docker/Dockerfile.jvm -t registry.gitlab.com/ayd2-dic2022/players-api:$version .'
+    - 'docker build -f src/main/docker/Dockerfile -t registry.gitlab.com/ayd2-dic2022/players-api:$version .'
     - 'docker push registry.gitlab.com/ayd2-dic2022/players-api:$version'
   only:
     - main
@@ -112,4 +123,6 @@ kubernetes-deploy:
     - 'kubectl config get-contexts'
     - 'kubectl config use-context ayd2-dic2022/auth-api:gke-agent'
     - 'kubectl apply -f target/kubernetes/kubernetes.yml'
+  only:
+    - main
 
