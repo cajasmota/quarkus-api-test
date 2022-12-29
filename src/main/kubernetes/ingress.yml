@@ -3,6 +3,9 @@ kind: Ingress
 metadata:
   name: teams-api
   namespace: wc2026
+  annotations:
+    cert-manager.io/issuer: "api-prod-cert-issuer" #should match the issuer defined on root ingress-nginx TLS config
+    nginx.ingress.kubernetes.io/enable-cors: "true" #allow any host
 spec:
   rules:
     - host: api.wc2026.motojoapps.com
@@ -10,7 +13,7 @@ spec:
         paths:
           - backend:
               service:
-                name: teams-api
+                name: players-api
                 port:
                   name: http
             path: /teams

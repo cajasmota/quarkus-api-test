@@ -4,6 +4,7 @@ import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 public record CreatePlayerRequest(
+
         @NotNull
         @Size(min = 3, max = 50)
         String name,
@@ -21,5 +22,4 @@ public record CreatePlayerRequest(
 
         @Pattern(regexp = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$")
         String photoURL
-) {
-}
+) { }
