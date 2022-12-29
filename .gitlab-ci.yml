@@ -128,6 +128,7 @@ kubernetes-deploy:
     - 'kubectl config get-contexts'
     - 'kubectl config use-context ayd2-dic2022/kubernetes-config:gke'
     - 'kubectl apply -f target/kubernetes/kubernetes.yml'
+    - 'kubectl apply -f src/main/kubernetes/ingress.yml'
   only:
     - main
 
